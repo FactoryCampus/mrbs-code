@@ -310,8 +310,8 @@ function getWritable($creator, $rooms=null, $all=true) : bool
     return true;
   }
 
-  // Unauthorised access
-  return false;
+  // We allow all users to edit all bookings
+  return true;
 }
 
 /* showAccessDenied()
