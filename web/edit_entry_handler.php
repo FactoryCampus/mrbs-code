@@ -897,6 +897,37 @@ catch (\Exception $e)
 // Everything was OK.   Go back to where we came from
 if ($result['valid_booking'])
 {
+  // WEBHOOK START
+  if (getenv('WEBHOOK_URL') != "")
+  {
+    // curl setup
+    $webhook_url = getenv('WEBHOOK_URL');
+    $curl = curl_init($webhook_url);
+    curl_setopt($curl, CURLOPT_URL, $webhook_url);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HEADER, array("Content-Type: application/json"));
+
+    // compose message
+    $msg_name = form_vars['name'];
+    $msg_desc = form_vars['description'];
+    $msg_start_t = form_vars['start_time'];
+    $msg_end_t = form_vars['end_time'];
+    $msg_room = form_vars['room'];
+    $webhook_msg = <<<EOF
+    {"text":"Titel: $msg_name\nBeschreibung: $msg_desc\n\nZeit: $msg_start_t → $msg_end_t\nRaum: $msg_room"}
+    EOF;
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $webhook_msg);
+
+    // post message
+    $response = curl_exec($curl);
+    echo $response;
+
+    // close curl
+    curl_close($curl);
+  }
+  // WEBHOOK END
+
   location_header($returl);
 }
 
