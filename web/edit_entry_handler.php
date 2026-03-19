@@ -908,23 +908,33 @@ if ($result['valid_booking'])
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl, CURLOPT_HEADER, array("Content-Type: application/json"));
 
+    // setup some variables
+    $start_seconds = get_form_var("start_seconds", $form_vars['start_seconds']);
+    $start_date = get_form_var("start_date", $form_vars['start_date']);
+    $end_seconds = get_form_var("end_seconds", $form_vars['end_seconds']);
+    $end_date = get_form_var("end_date", $form_vars['end_date']);
+    $room_id = get_form_var("rooms", $form_vars['rooms'])[0];
+    $room_sql = "SELECT room_name
+            FROM " . _tbl('room') . "
+            WHERE id = " . $room_id . ";";
+    $room_sql_result = db()->query($room_sql)->next_row_keyed(); # there will be only one result.
+    $room_name = $room_sql_result["room_name"];
+
     // compose message
-    $msg_name = form_vars['name'];
-    $msg_desc = form_vars['description'];
-    $msg_start_t = form_vars['start_time'];
-    $msg_end_t = form_vars['end_time'];
-    $msg_room = form_vars['room'];
+    $msg_name = get_form_var("name", $form_vars['name']);
+    $msg_desc = get_form_var("description", $form_vars['description']);
+    $msg_start_t = date('d.m.Y H:i:s', strtotime($start_date) + $start_seconds);
+    $msg_end_t = date('d.m.Y H:i:s', strtotime($end_date) + $end_seconds);
+    $msg_room = $room_name;
     $webhook_msg = <<<EOF
-    {"text":"Titel: $msg_name\nBeschreibung: $msg_desc\n\nZeit: $msg_start_t → $msg_end_t\nRaum: $msg_room"}
+    {"text":"> *Titel: $msg_name*\n> Beschreibung: $msg_desc\n>\n> Zeit: $msg_start_t → $msg_end_t\n> Raum: $msg_room"}
     EOF;
     curl_setopt($curl, CURLOPT_POSTFIELDS, $webhook_msg);
 
     // post message
+    error_log("WEBHOOK: message = \"$webhook_msg\", url = \"$webhook_url\"");
     $response = curl_exec($curl);
-    echo $response;
-
-    // close curl
-    curl_close($curl);
+    error_log("WEBHOOK: response = \"$response\"");
   }
   // WEBHOOK END
 
