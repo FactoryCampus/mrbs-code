@@ -922,12 +922,12 @@ if ($result['valid_booking'])
 
     // compose message
     $msg_name = get_form_var("name", $form_vars['name']);
-    $msg_desc = get_form_var("description", $form_vars['description']);
+    $msg_desc = str_replace(array("\r\n", "\r", "\n"), "\\n> ", get_form_var("description", $form_vars['description']));
     $msg_start_t = date('d.m.Y H:i:s', strtotime($start_date) + $start_seconds);
     $msg_end_t = date('d.m.Y H:i:s', strtotime($end_date) + $end_seconds);
     $msg_room = $room_name;
     $webhook_msg = <<<EOF
-    {"text":"> *Titel: $msg_name*\n> Beschreibung: $msg_desc\n>\n> Zeit: $msg_start_t → $msg_end_t\n> Raum: $msg_room"}
+    {"text":"> *Titel: $msg_name*\n> Beschreibung:\n> $msg_desc\n>\n>\n> Zeit: $msg_start_t → $msg_end_t\n> Raum: $msg_room"}
     EOF;
     curl_setopt($curl, CURLOPT_POSTFIELDS, $webhook_msg);
 
